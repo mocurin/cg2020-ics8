@@ -1,0 +1,67 @@
+<HTML>
+<BODY>
+
+<canvas id='canv' width='1000' height='1000' style='border:1px solid'>
+</canvas>
+
+<script>
+	class PolarDot2D {
+		constructor(rad, ang, vel, size, foo) {
+			this.rad = rad;
+			this.ang = ang;
+			this.angVel = vel;
+			this.size = size;
+			this.foo = foo;
+		}
+
+		update() {
+			this.ang += this.angVel;
+			this.rad = this.foo(this.ang);
+		}
+
+		draw(context, offsetX, offsetY) {
+			context.fillRect(offsetX + this.cartesianX(),
+							 offsetY + this.cartesianY(),
+							 this.size, this.size);
+		}
+
+		cartesianX() {
+			return this.rad * Math.cos(this.ang);
+		}
+
+		cartesianY() {
+			return this.rad * Math.sin(this.ang);
+		}
+	}
+
+	function polarRose(angle, scale = 1, n = 1, d = 2) {
+		return Math.sin(angle * n / d) * scale;
+	}
+
+
+	let canvas = document.getElementById('canv');
+	let context = canvas.getContext('2d');
+
+	let dots = [new PolarDot2D(0, 0, 0.005, 5, function(angle) { return polarRose(angle, 100, 5, 6); }),
+				new PolarDot2D(0, 0, 0.005, 5, function(angle) { return polarRose(angle, 200, 5, 6); }),
+				// new PolarDot2D(0, 0, 0.005, 5, function(angle) { return polarRose(angle, 300, 5, 6); }),
+				// new PolarDot2D(0, 0, 0.005, 5, function(angle) { return polarRose(angle, 400, 5, 6); }),
+				];
+	let colors = ['#00FFFF', '#00FF44',
+				  // '#00FF88', '#00FFCC'
+				  ];
+
+	context.fillStyle = '#000000';
+	context.fillRect(0, 0, canvas.width, canvas.height);
+	setInterval(function() {
+		// context.clearRect(0, 0, canvas.width, canvas.height);
+		for (let i = dots.length - 1; i >= 0; --i) {
+			context.fillStyle = colors[i];
+			dots[i].draw(context, canvas.width / 2, canvas.height / 2);
+			dots[i].update();
+		}
+	}, 1);
+</script>
+
+</BODY>
+</HTML>

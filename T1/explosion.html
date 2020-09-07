@@ -1,0 +1,123 @@
+<HTML>
+<BODY>
+
+<canvas id='canv' width='500' height='500' style='border:1px solid'>
+</canvas>
+
+<script>
+	class Vector2D {
+		constructor(x, y) {
+			this.x = x;
+			this.y = y;
+		}
+
+		update(x, y) {
+			this.x = x;
+			this.y = y;
+		}
+
+		magnitude() {
+			return Math.sqrt(this.x * this.x + this.y * this.y);
+		}
+
+		normalize() {
+			let m = this.magnitude();
+			if (!m) return;
+			this.x /= m;
+			this.y /= m;
+		}
+
+		static add(vector1, vector2) {
+			return new Vector2D(vector1.x + vector2.x, vector1.y + vector2.y);
+		}
+
+		static sub(vector1, vector2) {
+			return Vector2D.add(vector1, new Vector2D(-vector2.x, -vector2.y));
+		}
+
+		static mult(vector, number) {
+			let vec = new Vector2D(vector.x, vector.y);
+			vec.x *= number;
+			vec.y *= number;
+			return vec;
+		}
+
+		static getRandomDirection() {
+			let vec = new Vector2D(Math.random() - 0.5, Math.random() - 0.5);
+			vec.normalize()
+			return vec;
+		}
+	}
+
+	class PhysicalObject {
+		constructor(position = new Vector2D(0, 0),
+					direction = new Vector2D(0, 0),
+					size = 1,
+					velocity = 0,
+					friction = 0) {
+			this.pos = position;
+			this.dir = direction;
+			this.sz = size;
+			this.vel = velocity;
+			this.fr = friction;
+			this.age = 0;
+		}
+
+		render(context) {
+			context.fillStyle = '#0000FF';
+			context.fillRect(this.pos.x, this.pos.y, this.sz, this.sz);
+		}
+
+		update(canvas) {
+			this.age += 1;
+			if (this.pos.x > canvas.width || this.pos.x < 0) this.dir.x *= -1;
+			if (this.pos.y > canvas.height || this.pos.y < 0) this.dir.y *= -1;
+			this.pos = Vector2D.add(this.pos, Vector2D.mult(this.dir, this.vel));
+			this.vel *= (1 - this.fr);
+		}
+
+		static randomPhysicalObject(position = new Vector2D(0, 0),
+									minS = 2, maxS = 4, minV = 1,
+									maxV = 5, minFr = 0.01, maxFr = 0.1) {
+			return new PhysicalObject(
+				position,
+				Vector2D.getRandomDirection(),
+				boundedRandom(minS, maxS),
+				boundedRandom(minV, maxV),
+				boundedRandom(minFr, maxFr)
+			)
+		}
+	}
+
+	function boundedRandom(minVal, maxVal) {
+		return minVal + Math.round(Math.random() * (maxVal - minVal));
+	}
+
+	let canvas = document.getElementById('canv');
+	let ctx = canvas.getContext('2d');
+
+	let particles = [];
+
+	canvas.addEventListener('mousedown', function(event) {
+		for (let i = 0; i < boundedRandom(5, 25); ++i) {
+			let pos = new Vector2D(event.offsetX, event.offsetY);
+			particles.push(PhysicalObject.randomPhysicalObject(pos));
+		}
+	})
+
+	let maxAge = 1000;
+
+	setInterval(function() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		let indices = [];
+		for (let i = 0; i < particles.length; ++i) {
+			particles[i].update(canvas);
+			particles[i].render(ctx);
+			if (particles[i].age >= maxAge) indices.push(i);
+		}
+		for (let i = indices.length; i > 0; --i) particles.splice(i - 1, 1);
+	}, 5);
+</script>
+
+</BODY>
+</HTML>
