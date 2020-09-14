@@ -1,10 +1,14 @@
 <HTML>
 <BODY>
 
-<canvas id='canv' width='500' height='500' style='border:1px solid'>
+<canvas id='canv' width='1000' height='1000' style='border:1px solid'>
 </canvas>
 
 <script>
+	function getRandomColor() {
+		return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16);
+	}
+
 	class Vector2D {
 		constructor(x, y) {
 			this.x = x;
@@ -64,7 +68,7 @@
 		}
 
 		render(context) {
-			context.fillStyle = '#0000FF';
+			context.fillStyle = getRandomColor();
 			context.fillRect(this.pos.x, this.pos.y, this.sz, this.sz);
 		}
 
@@ -74,11 +78,12 @@
 			if (this.pos.y > canvas.height || this.pos.y < 0) this.dir.y *= -1;
 			this.pos = Vector2D.add(this.pos, Vector2D.mult(this.dir, this.vel));
 			this.vel *= (1 - this.fr);
+			if (this.vel < 0.001) this.age *= 1.1;
 		}
 
 		static randomPhysicalObject(position = new Vector2D(0, 0),
-									minS = 2, maxS = 4, minV = 1,
-									maxV = 5, minFr = 0.01, maxFr = 0.1) {
+									minS = 1, maxS = 3, minV = 0.,
+									maxV = 10., minFr = 0.01, maxFr = 0.05) {
 			return new PhysicalObject(
 				position,
 				Vector2D.getRandomDirection(),
@@ -90,7 +95,7 @@
 	}
 
 	function boundedRandom(minVal, maxVal) {
-		return minVal + Math.round(Math.random() * (maxVal - minVal));
+		return minVal + Math.random() * (maxVal - minVal);
 	}
 
 	let canvas = document.getElementById('canv');
@@ -99,7 +104,7 @@
 	let particles = [];
 
 	canvas.addEventListener('mousedown', function(event) {
-		for (let i = 0; i < boundedRandom(5, 25); ++i) {
+		for (let i = 0; i < boundedRandom(800, 1000); ++i) {
 			let pos = new Vector2D(event.offsetX, event.offsetY);
 			particles.push(PhysicalObject.randomPhysicalObject(pos));
 		}
