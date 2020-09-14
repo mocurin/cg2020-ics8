@@ -7,19 +7,21 @@ let context1 = canvas1.getContext('2d');
 let context2 = canvas2.getContext('2d');
 
 let image = new Image();
-image.crossOrigin = 'anonymous';
-image.src = 'test.png';
+image.src = 'test.jpg';
 
 image.onload = function() {
 	context1.drawImage(image, 0, 0);
 	let imageData = context1.getImageData(0, 0, canvas1.width, canvas1.height);
-	console.log(image);
 	let newImageData = context2.createImageData(canvas1.width, canvas1.height);
 	for (let i = 0; i < canvas1.height; ++i) {
 		for (let j = 0; j < canvas1.width; ++ j) {
+			let sum = 0;
 			for (let k = 0; k < 4; ++k) {
-				newImageData.data[4 * (i * canvas1.width + j) + k] =
-					imageData.data[4 * (i * canvas1.width + j) + k];
+				sum += imageData.data[4 * (i * canvas1.width + j) + k];
+			}
+			sum /= 4;
+			for (let k = 0; k < 4; ++k) {
+				newImageData.data[4 * (i * canvas1.width + j) + k] = sum;	
 			}
 		}
 	}
