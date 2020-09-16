@@ -16,13 +16,15 @@ image.onload = function() {
 	for (let i = 0; i < canvas1.height; ++i) {
 		for (let j = 0; j < canvas1.width; ++ j) {
 			let sum = 0;
-			for (let k = 0; k < 4; ++k) {
+			for (let k = 0; k < 3; ++k) {
 				sum += imageData.data[4 * (i * canvas1.width + j) + k];
 			}
-			sum /= 4;
-			for (let k = 0; k < 4; ++k) {
+			sum /= 3;
+			for (let k = 0; k < 3; ++k) {
 				newImageData.data[4 * (i * canvas1.width + j) + k] = sum;	
 			}
+			newImageData.data[4 * (i * canvas1.width + j) + 3] =
+				imageData.data[4 * (i * canvas1.width + j) + 3];
 		}
 	}
 	context2.putImageData(newImageData, 0, 0);
