@@ -8,20 +8,20 @@ class Line {
 	}
 
 	draw(ctx) {
-		var dy = Math.abs(this.y1 - this.y0);
-		var dx = Math.abs(this.x1 - this.x0);
-		var dmax = Math.max(dx, dy);
-		var dmin = Math.min(dx, dy);
-		var xdir = 1;
-		var ydir = 1;
+		let dy = Math.abs(this.y1 - this.y0);
+		let dx = Math.abs(this.x1 - this.x0);
+		let dmax = Math.max(dx, dy);
+		let dmin = Math.min(dx, dy);
+		let xdir = 1;
+		let ydir = 1;
 		if (this.x1 < this.x0) xdir = -1;	
 		if (this.y1 < this.y0) ydir = -1;
-		var eps = 0;
-		var s = 1;
-		var k = 2 * dmin;
+		let eps = 0;
+		let s = 1;
+		let k = 2 * dmin;
 		if (dy <= dx) {
-			var y = this.y0;
-			for (var x = this.x0; x * xdir <= this.x1 * xdir; x += xdir) {
+			let y = this.y0;
+			for (let x = this.x0; x * xdir <= this.x1 * xdir; x += xdir) {
 				ctx.fillRect(x * s, y * s, 1 * s, 1 * s);
 				eps += k;
 				if (eps > dmax) {
@@ -30,8 +30,8 @@ class Line {
 				}
 			} 
 		} else {
-			var x = this.x0;
-			for (var y = this.y0; y * ydir <= this.y1 * ydir; y += ydir) {
+			let x = this.x0;
+			for (let y = this.y0; y * ydir <= this.y1 * ydir; y += ydir) {
 				ctx.fillRect(x * s, y * s, 1 * s, 1 * s);
 				eps += k;
 				if (eps > dmax) {
@@ -41,34 +41,35 @@ class Line {
 			} 
 		}
 	}
-
-	cyrus_beck(line) {
-		var t = ((this.y0 - this.y1) * (line.x0 - this.x0) + (this.x1 - this.x0) * (line.y0 - this.y0) ) /
-			((line.x1 - line.x0) * (this.y1 - this.y0) + (line.y1 - line.y0) * (this.x0 - this.x1));
-		if (t <= 1 && t >= 0) {
-			var ex = (line.x1 - line.x0) * t + line.x0;
-			var ey = (line.y1 - line.y0) * t + line.y0;
-			return new Line(ex, ey, line.x1, line.y1); 
-		}
-	}
 }
 
-var canvas = document.getElementById("canv");
-var ctx = canvas.getContext("2d");
+function cyrus_beck(line0, line1) {
+	let t = ((line1.y0 - line1.y1) * (line0.x0 - line1.x0) + (line1.x1 - line1.x0) * (line0.y0 - line1.y0))
+		/ ((line0.x1 - line0.x0) * (line1.y1 - line1.y0) + (line0.y1 - line0.y0) * (line1.x0 - line1.x1));
+	if (t <= 1 && t >= 0) {
+		let ex = (line0.x1 - line0.x0) * t + line0.x0;
+		let ey = (line0.y1 - line0.y0) * t + line0.y0;
+		return new Line(ex, ey, line0.x1, line0.y1);
+	}
+	return line1;
+}
+
+let canvas = document.getElementById("canv");
+let ctx = canvas.getContext("2d");
 
 
-var fx, fy;
-var cx, cy;
-var unset = true;
-var lines = [];
+let fx, fy;
+let cx, cy;
+let unset = true;
+let lines = [];
 
-var state = 0;
+let state = 0;
 
-// var state = 0;
-// var ax, ay;
-// var bx, by;
-// var p1x, p1y;
-// var p2x, p2y;
+// let state = 0;
+// let ax, ay;
+// let bx, by;
+// let p1x, p1y;
+// let p2x, p2y;
 
  
 canvas.addEventListener("click", function(event) {
@@ -79,7 +80,7 @@ canvas.addEventListener("click", function(event) {
 			cx = fx;
 			cy = fy;
 		} else if (state == 0) {
-			var line = new Line(cx, cy, event.offsetX, event.offsetY);
+			let line = new Line(cx, cy, event.offsetX, event.offsetY);
 			line.draw(ctx);
 			lines.push(line);
 			cx = event.offsetX;
@@ -91,10 +92,11 @@ canvas.addEventListener("click", function(event) {
 		} else if (state == 1) {
 			unset = true;
 			state = 0;
-			var line = new Line(cx, cy, event.offsetX, event.offsetY);
+			console.log(lines.length)
+			let line = new Line(cx, cy, event.offsetX, event.offsetY);
 			// line.draw(ctx);
-			for (var i = 0; i < lines.length; ++i) {
-				line = line.cyrus_beck(lines[i]);
+			for (let i = 0; i < lines.length; ++i) {
+				line = cyrus_beck(line, lines[i]);
 			}
 			ctx.fillStyle = "#00FF00";
 			line.draw(ctx);
@@ -118,21 +120,22 @@ canvas.addEventListener("click", function(event) {
 		// 	p2y = event.offsetY;
 		// 	Line(ctx, p1x, p1y, p2x, p2y);
 
-		// 	var t = ( (p1y - p2y) * (ax - p1x) + (p2x-p1x)*(ay-p1y) ) / ( (bx-ax)*(p2y-p1y)+(by-ay)*(p1x-p2x) );
+		// 	let t = ( (p1y - p2y) * (ax - p1x) + (p2x-p1x)*(ay-p1y) ) / ( (bx-ax)*(p2y-p1y)+(by-ay)*(p1x-p2x) );
 		// 	if (t<=1 && t>=0) {
-		// 		var ex = (bx-ax)*t+ax;
-		// 		var ey = (by-ay)*t+ay;
+		// 		let ex = (bx-ax)*t+ax;
+		// 		let ey = (by-ay)*t+ay;
 		// 		ctx.fillStyle = "#00ff00";
 		// 		Line(ctx, ex, ey, bx, by); 
 		// 		ctx.fillStyle = "#000000";
 		// 	}
 		// 	state = 0;
 		// }
-	});
+});
+
 canvas.addEventListener("dblclick", function(event) {
 		unset = true;
 		state = 1
-		var line = new Line(fx, fy, event.offsetX, event.offsetY);
+		let line = new Line(fx, fy, event.offsetX, event.offsetY);
 		line.draw(ctx);
 		lines.push(line);
 })
