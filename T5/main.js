@@ -7,38 +7,61 @@ class Line {
 		this.y1 = y1
 	}
 
+	// draw(ctx) {
+	// 	let dy = Math.abs(this.y1 - this.y0);
+	// 	let dx = Math.abs(this.x1 - this.x0);
+	// 	let dmax = Math.max(dx, dy);
+	// 	let dmin = Math.min(dx, dy);
+	// 	let xdir = 1;
+	// 	let ydir = 1;
+	// 	if (this.x1 < this.x0) xdir = -1;	
+	// 	if (this.y1 < this.y0) ydir = -1;
+	// 	let eps = 0;
+	// 	let s = 1;
+	// 	let k = 2 * dmin;
+	// 	if (dy <= dx) {
+	// 		let y = this.y0;
+	// 		for (let x = this.x0; x * xdir <= this.x1 * xdir; x += xdir) {
+	// 			ctx.fillRect(x * s, y * s, 1 * s, 1 * s);
+	// 			eps += k;
+	// 			if (eps > dmax) {
+	// 				y += ydir;
+	// 				eps -= 2 * dmax;
+	// 			}
+	// 		} 
+	// 	} else {
+	// 		let x = this.x0;
+	// 		for (let y = this.y0; y * ydir <= this.y1 * ydir; y += ydir) {
+	// 			ctx.fillRect(x * s, y * s, 1 * s, 1 * s);
+	// 			eps += k;
+	// 			if (eps > dmax) {
+	// 				x += xdir;
+	// 				eps -= 2 * dmax;
+	// 			}	
+	// 		} 
+	// 	}
+	// }
+
 	draw(ctx) {
-		let dy = Math.abs(this.y1 - this.y0);
-		let dx = Math.abs(this.x1 - this.x0);
-		let dmax = Math.max(dx, dy);
-		let dmin = Math.min(dx, dy);
-		let xdir = 1;
-		let ydir = 1;
-		if (this.x1 < this.x0) xdir = -1;	
-		if (this.y1 < this.y0) ydir = -1;
-		let eps = 0;
-		let s = 1;
-		let k = 2 * dmin;
-		if (dy <= dx) {
-			let y = this.y0;
-			for (let x = this.x0; x * xdir <= this.x1 * xdir; x += xdir) {
-				ctx.fillRect(x * s, y * s, 1 * s, 1 * s);
-				eps += k;
-				if (eps > dmax) {
-					y += ydir;
-					eps -= 2 * dmax;
-				}
-			} 
-		} else {
-			let x = this.x0;
-			for (let y = this.y0; y * ydir <= this.y1 * ydir; y += ydir) {
-				ctx.fillRect(x * s, y * s, 1 * s, 1 * s);
-				eps += k;
-				if (eps > dmax) {
-					x += xdir;
-					eps -= 2 * dmax;
-				}	
-			} 
+		const deltaX = Math.abs(this.x1 - this.x0);
+		const deltaY = Math.abs(this.y1 - this.y0);
+		const signX = this.x1 < this.x0 ? -1 : 1;
+		const signY = this.y1 < this.y0 ? -1 : 1;
+		let eps = deltaX - deltaY;
+		let x = this.x0;
+		let y = this.y0;
+
+		while (x != this.x1 || y != this.y1) {
+			ctx.fillRect(x, y, 1, 1);
+
+			if (eps << 1 > -deltaY) {
+				eps -= deltaY;
+				if (x != this.x1) x += signX;
+			}
+			if (eps << 1 < deltaX) {
+				eps += deltaX;
+				if (y != this.y1) y += signY;
+			}
 		}
 	}
 }
