@@ -1,17 +1,17 @@
-'use strict';
+"use strict";
 
 let canvas = document.getElementById("canv");
 let ctx = canvas.getContext("2d");
 
 function getRandomColor() {
-	return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16);
+	return "#" + Math.floor(Math.random() * 0xFFFFFF).toString(16);
 }
 
-function FillPolygon(context, vert) {
-	let miny = vert[0].y, maxy = vert[0].y;
+function FillPolygon(context, vert, ax0=0, ax1=1) {
+	let miny = vert[0][ax1], maxy = vert[0][ax1];
 	for (let i = 0; i < vert.length; ++i) {
-		if (vert[i].y < miny) miny = vert[i].y;
-		if (vert[i].y > maxy) maxy = vert[i].y;
+		if (vert[i][ax1] < miny) miny = vert[i][ax1];
+		if (vert[i][ax1] > maxy) maxy = vert[i][ax1];
 	}
 
 	let yarray = [];
@@ -19,20 +19,20 @@ function FillPolygon(context, vert) {
 		let p = 0;
 		if (i != vert.length - 1) p = i + 1;
 		let hi = 0, lo = 0;
-		if (vert[i].y > vert[p].y) {hi = i; lo = p;}
-		else if (vert[i].y < vert[p].y) {hi = p; lo = i;}
+		if (vert[i][ax1] > vert[p][ax1]) {hi = i; lo = p;}
+		else if (vert[i][ax1] < vert[p][ax1]) {hi = p; lo = i;}
 		else continue;
 
-		if (vert[hi].x != vert[lo].x) {
-			let k = (vert[hi].y - vert[lo].y) / (vert[hi].x - vert[lo].x);
-			for (let j = vert[lo].y; j < vert[hi].y; ++j) {
+		if (vert[hi][ax0] != vert[lo][ax0]) {
+			let k = (vert[hi][ax1] - vert[lo][ax1]) / (vert[hi][ax0] - vert[lo][ax0]);
+			for (let j = vert[lo][ax1]; j < vert[hi][ax1]; ++j) {
 				if (typeof yarray[j] == "undefined") yarray[j] = [];
-				yarray[j].push((j - vert[lo].y)/k + vert[lo].x);
+				yarray[j].push((j - vert[lo][ax1])/k + vert[lo][ax0]);
 			}
 		} else {
-			for (let j = vert[lo].y; j < vert[hi].y; ++j) {
+			for (let j = vert[lo][ax1]; j < vert[hi][ax1]; ++j) {
 				if (typeof yarray[j] == "undefined") yarray[j] = [];
-				yarray[j].push(vert[lo].x);
+				yarray[j].push(vert[lo][ax0]);
 			}
 		}
 	}
@@ -47,53 +47,58 @@ function FillPolygon(context, vert) {
 	}
 }
 
-
-let diamond_v = [
-	{x: 0.000000E+00, y: 0.000000E+00, z: 78.0000},
-	{x: 45.0000, y: 45.0000, z: 0.000000E+00},
-	{x: 45.0000, y: -45.0000, z: 0.000000E+00},
-	{x: -45.0000, y: -45.0000, z: 0.000000E+00},
-	{x: -45.0000, y: 45.0000, z: 0.000000E+00},
-	{x: 0.000000E+00, y: 0.000000E+00, z: -78.0000}
-]
-
-for (let i = 0; i < diamond_v.length; ++i) {
-	diamond_v[i].x += canvas.width / 2;
-	diamond_v[i].y += canvas.height / 2;
-}
-
-let diamond_f = [
-    [1, 2, 3],
-    [1, 3, 4],
-    [1, 4, 5],
-    [1, 5, 2],
-    [6, 5, 4],
-    [6, 4, 3],
-    [6, 3, 2],
-    [6, 2, 1],
-    [6, 1, 5]
-]
-
-for (let f = 0; f < diamond_f.length; ++f) {
-	let points = []
-	for (let i = 0; i < diamond_f[f].length; ++i) {
-		points.push(diamond_v[diamond_f[f][i] - 1]);
+function shiftPos(vertices, delta=[1, 1, 1], axis=[0, 1, 2]) {
+	for (let i = 0; i < vertices.length; ++i) {
+		for (let j = 0; j < axis.length; ++j) {
+			vertices[i][axis[j]] += delta[j];
+		}
 	}
-	ctx.fillStyle = getRandomColor();
-	FillPolygon(ctx, points);
+}
+
+function scalePos(vertices, scale=[1, 1, 1], axis=[0, 1, 2]) {
+	for (let i = 0; i < vertices.length; ++i) {
+		for (let j = 0; j < axis.length; ++j) {
+			vertices[i][axis[j]] *= scale[j];
+		}
+	}
 }
 
 
-// let vertices = [];
+function drawFig(ctx, fig_faces, fig_vertices, ax0=0, ax1=1) {
+	for (let i = 0; i < fig_faces.length; ++i) {
+		let points = [];
+		for (let j = 0; j < fig_faces[i].length; ++j) {
+			points.push(fig_vertices[fig_faces[i][j] - 1]);
+		}
+		ctx.fillStyle = getRandomColor();
+		FillPolygon(ctx, points, ax0, ax1);
+	}
+}
 
-// canvas.addEventListener("click", function(event){
-// 	vertices.push(new Point(event.offsetX, event.offsetY));
-// })
+const fs = document.getElementById("file-selector");
 
-// canvas.addEventListener("keydown", function(event) {
-// 	if (event.key == ' ') {
-// 		console.log(vertices);
-// 		FillPolygon(ctx, vertices);
-// 		vertices = [];
-// 	}
-// })
+fs.addEventListener("change", function(event) {
+	ctx.fillStyle = "#0xFFFFFF";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	const fr = new FileReader();
+	fr.onload = function(event) {
+		let data = JSON.parse(fr.result);
+		let vertices = data.v;
+		let faces = data.f;
+		console.log(data);
+
+		scalePos(vertices, [-2, -2, -2], [0, 1, 2]);
+		shiftPos(vertices, [canvas.width / 2, canvas.width / 2, canvas.width / 2], [0, 1, 2]);
+		drawFig(ctx, faces, vertices, 0, 1);
+	};
+	fr.readAsText(event.target.files[0]);
+});
+
+let btn = document.getElementById("btn");
+
+btn.addEventListener("click", function(event) {
+	let dataUrl = canvas.toDataURL("image/png");
+	btn.href = dataUrl;
+	btn.download = "test.png";
+});
